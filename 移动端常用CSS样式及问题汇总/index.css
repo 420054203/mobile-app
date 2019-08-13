@@ -1,0 +1,256 @@
+1.移动端通用
+html {
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    /*谷歌浏览器字体最小字体12px*/
+    -webkit-text-size-adjust: 100%;
+    /*100%/none 关闭字体大小自动调整功能*/
+    /*a标签及拥有 :active伪类的元素有默认的高亮框*/
+    -webkit-tap-hightlight-color: transparent;
+    /*禁止文本被选中*/
+    -webkit-user-select: none;
+}
+
+body {
+    font-family: Helvetica;
+    overflow-x: hidden;
+    /*开启moblie网页快速滚动和回弹的效果*/
+    -webkit-overflow-scrolling: touch;
+    font-size: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+a {
+    display: block;
+    width: 100%;
+    color: #333;
+    text-decoration: none;
+}
+
+img {
+    border: 0;
+    display: block;
+    width: 100%;
+    vertical-align: middle;
+}
+
+a,
+img {
+    /*阻止长按页面，弹出菜单的方法。*/
+    -webkit-touch-callout: none;
+}
+
+input,
+textarea {
+    -webkit-appearance: none;
+    outline: none;
+    border: none;
+}
+
+.fl {
+    float: left;
+}
+
+.fr {
+    float: right;
+}
+
+.clearfix:after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 0;
+    clear: both;
+}
+
+li,
+ol {
+    list-style: none;
+}
+
+/*修改placeholder的字体颜色*/
+input:-moz-placeholder {
+    /* Mozilla Firefox 4 to 18 */
+    color: #000;
+}
+
+input::-moz-placeholder {
+    /* Mozilla Firefox 19+ */
+    color: #000;
+}
+
+input:-ms-input-placeholder {
+    color: #000;
+}
+
+input::-webkit-input-placeholder {
+    color: #000;
+}
+2.手机上查看图片模糊问题
+* 移动端项目中 @2x 图 和 @3x 图 的使用（需要支持css3） */
+
+/* 第一种直接使用 IMG 的 SRCSET 属性 */
+
+/* <img width="100" height="100" src="image100.png" srcset="image200.png 2x,image300.png 3x"/> */
+
+/* 第二种 */
+/*默认大小*/
+.photo {background-image: url('图片地址');}
+/* 如果设备像素大于等于2，则用2倍图 */
+@media screen and (-webkit-min-device-pixel-ratio: 2),
+screen and (min--moz-device-pixel-ratio: 2) {
+  .photo {
+    background-image: url('图片地址');
+    background-size: 100px 100px;
+  }
+}
+/* 如果设备像素大于等于3，则用3倍图 */
+@media screen and (-webkit-min-device-pixel-ratio: 3),
+screen and (min--moz-device-pixel-ratio: 3) {
+  .photo {
+    background-image: url('图片地址');
+    background-size: 100px 100px;
+  }
+}
+.photo {width:100px;height:100px;}
+
+/* 移动端隐藏scroll滚动条::-webkit-scrollbar */
+::-webkit-scrollbar {/*隐藏滚轮*/
+display: none;
+}
+
+
+3.ios上fixed失效
+/*改用  position:absolute; 定位
+外面用 如下样式包裹 */
+.frame-wrapper {
+  transform: translate3d(0px, 0px, 0px);
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: transform ease-in-out 0.38s, visibility 0.38s, -webkit-transform ease-in-out 0.38s;
+}
+
+/*导航下面的滚动内容区域*/
+.content-wrapper {
+  box-sizing: border-box;
+  height: 100%;
+  overflow-x:hidden;
+  overflow-y:scroll;
+  -webkit-overflow-scrolling: touch;
+}
+
+4.input 的 placeholder会出现文本位置偏上的时候
+/*input 的placeholder会出现文本位置偏上的情况：
+PC端设置line-height等于height能够对齐，
+移动端设置line-height：normal*/
+
+5.长时间按住页面出现闪退 
+element { 
+-webkit-touch-callout: none; 
+} 
+6.移动端禁止图片长按和点击img标签放大图片。
+
+img{ pointer-events: none; }
+
+7.消除 transition 闪屏
+-webkit-transform-style: preserve-3d; /*设置内嵌的元素在 3D 空间如何呈现：保留 3D*/
+-webkit-backface-visibility: hidden; /*(设置进行转换的元素的背面在面对用户时是否可见：隐藏)*/
+
+8. CSS动画页面闪白,动画卡顿
+复制代码
+解决方法:
+1.尽可能地使用合成属性transform和opacity来设计CSS3动画，不使用position的left和top来定位
+2.开启硬件加速
+  -webkit-transform: translate3d(0, 0, 0);
+     -moz-transform: translate3d(0, 0, 0);
+      -ms-transform: translate3d(0, 0, 0);
+          transform: translate3d(0, 0, 0);
+
+
+
+9.calc的兼容性处理
+CSS3中的calc变量在iOS6浏览器中必须加-webkit-前缀，目前的FF浏览器已经无需-moz-前缀。
+Android浏览器目前仍然不支持calc，所以要在之前增加一个保守尺寸：
+
+div { 
+    width: 95%; 
+    width: -webkit-calc(100% - 50px); 
+    width: calc(100% - 50px); 
+}
+
+
+10.在部分android 机型中的输入框可能会出现如图怪异的多余的浮出表单,
+经过观察与测试发现只有input:password类型的输入框存在,
+那么我们只要使用input:text类型的输入框并通过样式-webkit-text-security: disc; 隐藏输入密码从而解决。
+
+
+11. 在游戏内嵌页中出现了不应该出现的滚动条,
+而且内容并没有超出内容区宽度,
+经过测试overflow:hidden 无效,
+通过一系列尝试使用古老的 <body scroll="no"> 写法解决
+
+12.ios手机页面里可滚动内容滚动不流畅
+问题描述：ios手机上，网页中可滚动区域滚动不流畅，手指滑动多少页面就只滚动多少，没有弹性效果
+
+解决办法：-webkit-overflow-scrolling : touch;
+
+13.ios 设置input 按钮样式会被默认样式覆盖
+解决方式如下：
+
+input,textarea {
+  border: 0;
+  -webkit-appearance: none;
+}
+
+14.手机上的flex布局时会有兼容性问题,
+只用新版本的会出现安卓手机不识别的现象
+flex布局对于低版本的安卓,
+不支持flex-wrap:wrap属性,
+但是ios系统支持换行属性,
+这个时候如何解决呢？当然是不使用换行，用其他方式代替。
+
+.box{
+    display: -webkit-box; 
+    /* 老版本语法: Safari, iOS, Android browser, older WebKit browsers. */
+    display: -moz-box; /* 老版本语法: Firefox (buggy) */
+    display: -ms-flexbox; /* 混合版本语法: IE 10 */
+    display: -webkit-flex; /* 新版本语法: Chrome 21+ */
+    display: flex; /* 新版本语法: Opera 12.1, Firefox 22+ */
+}
+
+15.input type=number之后，pc端出现上下箭头
+解决如下:
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0;
+}
+
+
+16.关于 iOS 与 OS X 端字体的优化(横竖屏会出现字体加粗不一致等)
+iOS 浏览器横屏时会重置字体大小，设置 text-size-adjust 为 none 可以解决 iOS 上的问题，但桌面版 Safari 的字体缩放功能会失效，因此最佳方案是将 text-size-adjust 为 100% 。
+-webkit-text-size-adjust:100%;
+-ms-text-size-adjust:100%;
+text-size-adjust:100%;
+
+17.阻止旋转屏幕时自动调整字体大小
+
+html, body, form, fieldset, p, div, h1, h2, h3, h4, h5, h6 {-webkit-text-size-adjust:none;}
+
+
+18.ios中字体会显示加粗效果，但是在android上显示ok
+解决办法：进行抗锯齿渲染。
+这个属性可以使页面上的字体抗锯齿,使用后字体看起来会更清晰。
+
+    -webkit-font-smoothing: antialiased;  /*chrome、safari*/
+    -moz-osx-font-smoothing: grayscale;/*firefox*/
+    
