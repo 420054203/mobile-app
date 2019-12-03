@@ -1,0 +1,173 @@
+1.tree
+问题：选中一个文字较长的树节点，部分文字没有选中颜色。
+原因：树节点的选中颜色是定义在父节点上的，而父节点的长度由包裹节点的元素决定，所以节点本身是没有颜色渲染的。
+解决方法：找到easyui/themes/default/tree.css。添加如下样式：
+
+
+.tree-node-selected .tree-title{
+  background: #FBEC88;
+  color: #000000;
+}
+
+2.combobox
+问题：选中一个文字较长的下拉选项，部分文字没有选中颜色。
+原因：下拉选项的长度是由下拉框来决定的，当选项文字超过下拉框长度的时候，超出的部分文字不能被渲染。
+解决方法：找到easyui/themes/default/combobox.css。修改如下样式：
+.combobox-item {
+  padding: 2px;
+  font-size: 12px;
+  padding: 3px;
+  padding-right: 0px;
+  word-wrap: break-word;
+}
+
+
+问题：输入的值不是下拉框选项值校验
+原因：esayui本身并未做该限定，但是使用者往往手动输入不是选项的值造成脏数据。
+解决方法：找到easyui/plugins/jquery.combobox.js。做如下扩展：
+
+首先，新增一个属性validateInput作为是否需要输入值校验。
+
+
+
+其次，找到cc()方法，该方法实际就是onLoadSuccess时间触发的方法。做如下修改：
+function cc() {
+	var lg = $(this).combobox('getData').length;
+	var pa = $.data(this, "combo").panel;
+	if (lg > 10) {
+		pa.panel({
+			height : 200
+		});
+	} else {
+		pa.panel({
+			height : 'auto'
+		});
+	}
+	var op = $(this).combobox('options');
+	//添加输入值是否为下拉框值的校验
+	if(op.validateInput){
+		var that = this;
+		$(this).next().find(".combo-text").bind("blur",function(){
+			comboboxSelectData(that);
+		})
+	}
+};
+
+最后，添加输入值和选项值校验的方法：
+//处理下拉框输入的值必须为下拉框选项或者空
+function comboboxSelectData(obj){
+	var _options = $(obj).combobox('options');  
+	var _data = $(obj).combobox('getData');/* 下拉框所有选项 */  
+	var _value = $(obj).combobox('getValue');/* 用户输入的值 */
+	var _text = $(obj).combobox('getText');/* 用户输入的值 */  
+	var _b = false;/* 标识是否在下拉列表中找到了用户输入的字符 */  
+	for (var i = 0; i < _data.length; i++) {  
+		if (_data[i][_options.valueField] == _value&&_data[i][_options.textField]==_text) {  
+	            _b=true;  
+	            break;  
+	        }  
+	}  
+	if(!_b){  
+	        $(obj).combobox("clear");  
+	}  
+}
+
+3.datagrid
+问题：当显示行号（rownumbers:true）的时候，行号超过5位时显示不全。
+原因：esayui本身并未做该限定，但是使用者往往手动输入不是选项的值造成脏数据。
+解决方法：找到easyui/themes/default/datagrid.css。修改如下样式：
+.datagrid-header-rownumber,
+.datagrid-cell-rownumber {
+  width: 50px;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+
+问题：当显示多选框（checkbox:true）的时候，当全选后刷新数据，全选仍存在，但是子数据没有任何选中。
+原因：esayui本身存在该问题，刷新数据后应该取消全选状态。
+解决方法：找到easyui/plugins/jquery.datagrid.js。修改如下代码：
+function _150(_151, _152) {
+	var opts = $.data(_151, "datagrid").options;
+	if (_152) {
+		opts.queryParams = _152;
+	}
+	var _153 = $.extend({}, opts.queryParams);
+	if (opts.pagination) {
+		$.extend(_153, {
+			page : opts.pageNumber,
+			rows : opts.pageSize
+		});
+	}
+	if (opts.sortName) {
+		$.extend(_153, {
+			sort : opts.sortName,
+			order : opts.sortOrder
+		});
+	}
+	if (opts.onBeforeLoad.call(_151, _153) == false) {
+		return;
+	}
+	$(_151).datagrid("loading");
+	setTimeout(function() {
+		_154();
+		_ed(_151);// 取消全部选中状态
+	}, 0);
+	function _154() {
+		var _155 = opts.loader.call(_151, _153, function(data) {
+			setTimeout(function() {
+				$(_151).datagrid("loaded");
+			}, 0);
+			_ab(_151, data);
+			setTimeout(function() {
+				_13c(_151);
+			}, 0);
+		}, function() {
+			setTimeout(function() {
+				$(_151).datagrid("loaded");
+			}, 0);
+			opts.onLoadError.apply(_151, arguments);
+		});
+		if (_155 == false) {
+			$(_151).datagrid("loaded");
+		}
+	};
+};
+
+
+问题：当编辑器为input的时候，不允许显示html类型的字符串。
+原因：esayui本身存在该问题，只有在text的情况下才将html字符串当成字符串，input情况下会将字符串解析了。
+解决方法：找到easyui/plugins/jquery.datagrid.js。做如下修改：
+
+首先，添加代码转换的方法：
+function escapeHtml(s) {
+	if(s===undefined){
+		return s;
+	}else{
+		s = String(s === null ? "" : s);
+		return s.replace(/&/g,"&").replace(/</g,"<").replace(/>/g,">")
+		.replace(/"/g,""").replace(/'/g,"'");// & < > " '
+	}
+}
+
+其次，找到renderRow的实现方法，修改如下代码：
+将
+if(col.formatter){
+	cc.push(col.formatter(_1df,_1dc,_1db));
+}else{
+	cc.push(_1df);
+}
+
+修改为：
+if(col.formatter){
+	cc.push(col.formatter(escapeHtml(_1df),_1dc,_1db));
+}else{
+	cc.push(escapeHtml(_1df));
+}
+
+4.datagridfilter
+问题：在IE下表格每次刷新都会变形。
+原因：，IE下每次解析都会计算hidden的列宽，如果hidden的列没设置宽度就会出现该问题。i
+解决方法：对每列都设置宽度，无论是否是隐藏列。
+
